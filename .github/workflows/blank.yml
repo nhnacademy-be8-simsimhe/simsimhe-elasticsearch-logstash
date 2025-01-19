@@ -36,7 +36,8 @@ jobs:
         cp logstash.conf logstash-8.9.2/config/logstash.conf
 
     - name: Verify Configuration File Copy
-      run: ls -l logstash-8.9.2/config/
+      run: ls -l /home/runner/work/simsimhe-***search-logstash/simsimhe-***search-logstash/logstash-8.9.2/config/logstash.conf
+
 
 
     - name: Run Logstash
@@ -49,4 +50,5 @@ jobs:
         ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
 
       run: |
-        logstash-8.9.2/bin/logstash -f logstash-8.9.2/config/logstash.conf 
+        logstash-8.9.2/bin/logstash -f /home/runner/work/simsimhe-***search-logstash/simsimhe-***search-logstash/logstash-8.9.2/config/logstash.conf
+
