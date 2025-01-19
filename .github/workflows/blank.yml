@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-    
-  schedule:
-    - cron: '*/5 * * * *' 
+
 jobs:
   run-logstash:
     runs-on: ubuntu-latest
@@ -19,36 +17,40 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '17'
-        distribution: 'temurin'
 
     - name: Download Logstash
       run: |
         wget https://artifacts.elastic.co/downloads/logstash/logstash-8.9.2-linux-x86_64.tar.gz
         tar -xzf logstash-8.9.2-linux-x86_64.tar.gz
 
-    - name: Add MySQL JDBC Driver via Maven
-      run: |
-        mvn dependency:get -Dartifact=mysql:mysql-connector-java:8.0.33 -Ddest=logstash-8.9.2/vendor
+    - name: Install Maven
+      run: sudo apt-get install -y maven
 
+    - name: Download MySQL JDBC Driver via Maven
+      run: |
+        mvn dependency:get -Dartifact=mysql:mysql-connector-java:8.0.33 -Ddest=logstash-8.9.2/vendor/
+
+    - name: Set Permissions for JDBC Driver
+      run: chmod 644 logstash-8.9.2/vendor/mysql-connector-java-8.0.33.jar
 
     - name: Prepare Logstash Configuration
+      run: cp logstash.conf logstash-8.9.2/config/logstash.conf
+
+    - name: Verify Configuration and Paths
       run: |
-        cp logstash.conf logstash-8.9.2/config/logstash.conf
-
-    - name: Verify Configuration File Copy
-      run: ls -l /home/runner/work/simsimhe-***search-logstash/simsimhe-***search-logstash/logstash-8.9.2/config/logstash.conf
-
-
+        echo "Logstash Configuration:"
+        cat logstash-8.9.2/config/logstash.conf
+        echo "Vendor Directory Contents:"
+        ls -l logstash-8.9.2/vendor/
 
     - name: Run Logstash
-      env:  # Secrets를 환경 변수로 전달
+      env:
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         DB_USER: ${{ secrets.DB_USER }}
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ELASTICSEARCH_HOST: ${{ secrets.ELASTICSEARCH_HOST }}
         ELASTIC_USER: ${{ secrets.ELASTIC_USER }}
         ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
-
       run: |
         logstash-8.9.2/bin/logstash -f /home/runner/work/simsimhe-***search-logstash/simsimhe-***search-logstash/logstash-8.9.2/config/logstash.conf
 
