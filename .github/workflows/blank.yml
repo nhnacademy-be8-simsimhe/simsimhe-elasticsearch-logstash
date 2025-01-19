@@ -28,7 +28,7 @@ jobs:
 
     - name: Add MySQL JDBC Driver via Maven
       run: |
-        mvn dependency:get -Dartifact=mysql:mysql-connector-java:8.0.34 -Ddest=logstash-8.9.2/vendor
+        mvn dependency:get -Dartifact=mysql:mysql-connector-java:8.0.33 -Ddest=logstash-8.9.2/vendor
 
 
     - name: Prepare Logstash Configuration
