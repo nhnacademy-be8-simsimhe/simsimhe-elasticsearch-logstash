@@ -1,0 +1,46 @@
+name: Deploy Logstash
+
+on:
+  push:
+    branches:
+      - main
+    
+  schedule:
+    - cron: '*/5 * * * *' 
+jobs:
+  run-logstash:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+
+    - name: Download Logstash
+      run: |
+        wget https://artifacts.elastic.co/downloads/logstash/logstash-8.9.2-linux-x86_64.tar.gz
+        tar -xzf logstash-8.9.2-linux-x86_64.tar.gz
+
+    - name: Add MySQL JDBC Driver
+      run: |
+        wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.33/mysql-connector-java-8.0.33.jar -P logstash-8.9.2/vendor
+
+    - name: Prepare Logstash Configuration
+      run: |
+        cp logstash.conf logstash-8.9.2/config/logstash.conf
+
+    - name: Run Logstash
+      env:  # Secrets를 환경 변수로 전달
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        ELASTICSEARCH_HOST: ${{ secrets.ELASTICSEARCH_HOST }}
+        ELASTIC_USER: ${{ secrets.ELASTIC_USER }}
+        ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+
+      run: |
+        logstash-8.9.2/bin/logstash -f logstash-8.9.2/config/logstash.conf 
